@@ -1,355 +1,352 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Monitor de Gás - MPAGC</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #0a0a0a; color: #fafafa; line-height: 1.6; padding: 1rem; min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 2rem; padding: 1.5rem 0; }
+        .header h1 { font-size: 1.875rem; font-weight: 700; margin-bottom: .5rem; letter-spacing: -.025em; }
+        .header p { color: #a1a1aa; font-size: .875rem; }
+        .card { background: #18181b; border: 1px solid #27272a; border-radius: .75rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px 0 rgba(0,0,0,.1); }
+        .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1.25rem; color: #fafafa; }
+        .status-grid { display: grid; gap: 1rem; }
+        .status-item { background: #09090b; border: 1px solid #27272a; border-radius: .5rem; padding: 1.25rem; transition: border-color .2s; }
+        .status-item:hover { border-color: #3f3f46; }
+        .status-label { font-size: .875rem; color: #a1a1aa; margin-bottom: .5rem; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+        .status-value { font-size: 2rem; font-weight: 700; margin-bottom: .25rem; display: flex; align-items: center; gap: .75rem; }
+        .status-description { font-size: .875rem; color: #71717a; }
+        .badge { display: inline-flex; align-items: center; padding: .25rem .75rem; border-radius: 9999px; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+        .badge-success { background: #166534; color: #bbf7d0; }
+        .badge-danger { background: #991b1b; color: #fecaca; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+        .progress-container { width: 100%; height: 1.5rem; background: #09090b; border: 1px solid #27272a; border-radius: 9999px; overflow: hidden; margin-top: .75rem; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb); transition: width .5s ease, background .3s ease; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 600; }
+        .progress-bar.low { background: linear-gradient(90deg, #dc2626, #b91c1c); }
+        .progress-bar.medium { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-label { display: block; font-size: .875rem; font-weight: 500; margin-bottom: .5rem; color: #fafafa; }
+        .form-input { width: 100%; padding: .625rem .875rem; background: #09090b; border: 1px solid #27272a; border-radius: .5rem; color: #fafafa; font-size: .875rem; transition: border-color .2s, box-shadow .2s; outline: 0; }
+        .form-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
+        .form-input::placeholder { color: #52525b; }
+        .form-hint { font-size: .75rem; color: #71717a; margin-top: .375rem; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: .625rem 1.25rem; font-size: .875rem; font-weight: 500; border: none; border-radius: .5rem; cursor: pointer; transition: background .2s, transform .1s; outline: 0; }
+        .btn:active { transform: scale(.98); }
+        .btn-primary { background: #3b82f6; color: #fff; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-primary:disabled { background: #27272a; color: #52525b; cursor: not-allowed; }
+        .alert { padding: 1rem; border-radius: .5rem; font-size: .875rem; margin-bottom: 1rem; display: none; }
+        .alert.show { display: block; }
+        .alert-success { background: #166534; color: #bbf7d0; border: 1px solid #15803d; }
+        .alert-error { background: #991b1b; color: #fecaca; border: 1px solid #b91c1c; }
+        .icon { width: 1.5rem; height: 1.5rem; flex-shrink: 0; }
+        @media (max-width: 640px) {
+            body { padding: .75rem; }
+            .header h1 { font-size: 1.5rem; }
+            .card { padding: 1rem; }
+            .status-value { font-size: 1.5rem; }
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #0a0a0a;
-            color: #fafafa;
-            line-height: 1.6;
-            padding: 1rem;
-            min-height: 100vh
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding: 1.5rem 0
-        }
-
-        .header h1 {
-            font-size: 1.875rem;
-            font-weight: 700;
-            margin-bottom: .5rem;
-            letter-spacing: -.025em
-        }
-
-        .header p {
-            color: #a1a1aa;
-            font-size: .875rem
-        }
-
-        .card {
-            background: #18181b;
-            border: 1px solid #27272a;
-            border-radius: .75rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .1)
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-            color: #fafafa
-        }
-
-        .status-grid {
-            display: grid;
-            gap: 1rem
-        }
-
-        .status-item {
-            background: #09090b;
-            border: 1px solid #27272a;
-            border-radius: .5rem;
-            padding: 1.25rem;
-            transition: border-color .2s
-        }
-
-        .status-item:hover {
-            border-color: #3f3f46
-        }
-
-        .status-label {
-            font-size: .875rem;
-            color: #a1a1aa;
-            margin-bottom: .5rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: .05em
-        }
-
-        .status-value {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: .25rem;
-            display: flex;
-            align-items: center;
-            gap: .75rem
-        }
-
-        .status-description {
-            font-size: .875rem;
-            color: #71717a
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: .25rem .75rem;
-            border-radius: 9999px;
-            font-size: .75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: .05em
-        }
-
-        .badge-success {
-            background: #166534;
-            color: #bbf7d0
-        }
-
-        .badge-danger {
-            background: #991b1b;
-            color: #fecaca;
-            animation: pulse 2s infinite
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1
-            }
-
-            50% {
-                opacity: .7
-            }
-        }
-
-        .progress-container {
-            width: 100%;
-            height: 1.5rem;
-            background: #09090b;
-            border: 1px solid #27272a;
-            border-radius: 9999px;
-            overflow: hidden;
-            margin-top: .75rem
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #2563eb);
-            transition: width .5s ease, background .3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: .75rem;
-            font-weight: 600
-        }
-
-        .progress-bar.low {
-            background: linear-gradient(90deg, #dc2626, #b91c1c)
-        }
-
-        .progress-bar.medium {
-            background: linear-gradient(90deg, #f59e0b, #d97706)
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem
-        }
-
-        .form-label {
-            display: block;
-            font-size: .875rem;
-            font-weight: 500;
-            margin-bottom: .5rem;
-            color: #fafafa
-        }
-
-        .form-input {
-            width: 100%;
-            padding: .625rem .875rem;
-            background: #09090b;
-            border: 1px solid #27272a;
-            border-radius: .5rem;
-            color: #fafafa;
-            font-size: .875rem;
-            transition: border-color .2s, box-shadow .2s;
-            outline: 0
-        }
-
-        .form-input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, .1)
-        }
-
-        .form-input::placeholder {
-            color: #52525b
-        }
-
-        .form-hint {
-            font-size: .75rem;
-            color: #71717a;
-            margin-top: .375rem
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: .625rem 1.25rem;
-            font-size: .875rem;
-            font-weight: 500;
-            border: none;
-            border-radius: .5rem;
-            cursor: pointer;
-            transition: background .2s, transform .1s;
-            outline: 0
-        }
-
-        .btn:active {
-            transform: scale(.98)
-        }
-
-        .btn-primary {
-            background: #3b82f6;
-            color: #fff
-        }
-
-        .btn-primary:hover {
-            background: #2563eb
-        }
-
-        .btn-primary:disabled {
-            background: #27272a;
-            color: #52525b;
-            cursor: not-allowed
-        }
-
-        .alert {
-            padding: 1rem;
-            border-radius: .5rem;
-            font-size: .875rem;
-            margin-bottom: 1rem;
-            display: none
-        }
-
-        .alert.show {
-            display: block
-        }
-
-        .alert-success {
-            background: #166534;
-            color: #bbf7d0;
-            border: 1px solid #15803d
-        }
-
-        .alert-error {
-            background: #991b1b;
-            color: #fecaca;
-            border: 1px solid #b91c1c
-        }
-
-        .icon {
-            width: 1.5rem;
-            height: 1.5rem;
-            flex-shrink: 0
-        }
-
-        @media (max-width:640px) {
-            body {
-                padding: .75rem
-            }
-
-            .header h1 {
-                font-size: 1.5rem
-            }
-
-            .card {
-                padding: 1rem
-            }
-
-            .status-value {
-                font-size: 1.5rem
-            }
-        }
-
-        .loading {
-            display: inline-block;
-            width: 1rem;
-            height: 1rem;
-            border: 2px solid #27272a;
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin .6s linear infinite
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg)
-            }
-        }
+        .loading { display: inline-block; width: 1rem; height: 1rem; border: 2px solid #27272a; border-top-color: #3b82f6; border-radius: 50%; animation: spin .6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="header">
             <h1>Monitor de Gás</h1>
             <p>Sistema de Monitoramento e Controle</p>
         </div>
+
         <div class="card">
             <h2 class="card-title">Status do Sistema</h2>
             <div class="status-grid">
                 <div class="status-item">
                     <div class="status-label">Vazamento de Gás</div>
-                    <div class="status-value"><svg class="icon" id="leakIcon" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                        </svg> <span id="leakStatus">Carregando...</span></div>
+                    <div class="status-value">
+                        <svg class="icon" id="leakIcon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                        <span id="leakStatus">Carregando...</span>
+                    </div>
                     <div class="status-description" id="leakDescription">Verificando sensores...</div>
-                    <div class="status-description" style="margin-top:0.5rem;font-size:0.75rem;color:#a1a1aa">Sensor:
-                        <span id="gasValueDisplay">--</span>/1023 | Limiar: <span id="gasThresholdDisplay">--</span>
+                    <div class="status-description" style="margin-top:0.5rem;font-size:0.75rem;color:#a1a1aa">
+                        Sensor: <span id="gasValueDisplay">--</span>/1023 | Limiar: <span id="gasThresholdDisplay">--</span>
                     </div>
                 </div>
                 <div class="status-item">
                     <div class="status-label">Nível de Gás</div>
                     <div class="status-value"><span id="gasLevel">--</span>%</div>
                     <div class="progress-container">
-                        <div class="progress-bar" id="gasProgress" style="width:0%"><span id="gasProgressText"></span>
+                        <div class="progress-bar" id="gasProgress" style="width:0%">
+                            <span id="gasProgressText"></span>
                         </div>
                     </div>
                     <div class="status-description" id="gasDescription">Peso atual do botijão</div>
                 </div>
             </div>
         </div>
+
         <div class="card">
             <h2 class="card-title">Modo Pesagem</h2>
-            <div class="alert alert-success" id="successAlert">Peso salvo com sucesso!</div>
-            <div class="alert alert-error" id="errorAlert">Erro ao salvar peso. Tente novamente.</div>
+            <div class="alert alert-success" id="weightSuccessAlert">Peso salvo com sucesso!</div>
+            <div class="alert alert-error" id="weightErrorAlert">Erro ao salvar peso. Tente novamente.</div>
             <div class="status-item">
                 <div class="status-label">Peso Atual Lido</div>
                 <div class="status-value"><span id="currentWeightDisplay">--</span> kg</div>
-                <div class="status-description" id="weightDescription">Coloque o botijão na balança e clique em Salvar
+                <div class="status-description" id="weightDescription">Coloque o botijão na balança e clique em Salvar</div>
+            </div>
+            <div class="form-group" style="margin-top:1.5rem">
+                <button type="button" class="btn btn-primary" id="saveWeightBtn" style="width:100%">
+                    Salvar Peso Atual como Peso Inicial
+                </button>
+                <div class="form-hint" style="margin-top:0.5rem">
+                    O peso atual será salvo como referência para cálculo do nível de gás
                 </div>
             </div>
-            <div class="form-group" style="margin-top:1.5rem"><button type="button" class="btn btn-primary"
-                    id="saveWeightBtn" style="width:100%">Salvar Peso Atual como Peso Inicial</button>
-                <div class="form-hint" style="margin-top:0.5rem">O peso atual será salvo como referência para cálculo do
-                    nível de gás</div>
-            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Configurações</h2>
+            <div class="alert alert-success" id="settingsSuccessAlert">Configurações salvas com sucesso!</div>
+            <div class="alert alert-error" id="settingsErrorAlert">Erro ao salvar configurações.</div>
+            
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label class="form-label" for="gasThreshold">Limiar de Detecção de Gás</label>
+                    <input type="number" class="form-input" id="gasThreshold" placeholder="400" min="0" max="1023">
+                    <div class="form-hint">Valor do sensor acima do qual um vazamento é detectado (0-1023)</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="whatsappPhone">Telefone WhatsApp</label>
+                    <input type="text" class="form-input" id="whatsappPhone" placeholder="5511999999999">
+                    <div class="form-hint">Número com DDI e DDD, sem espaços ou símbolos (ex: 5511999999999)</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="whatsappApiKey">API Key CallMeBot</label>
+                    <input type="text" class="form-input" id="whatsappApiKey" placeholder="Sua chave de API">
+                    <div class="form-hint">Obtenha em <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" style="color:#3b82f6">callmebot.com</a></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="saveSettingsBtn" style="width:100%">
+                    Salvar Configurações
+                </button>
+            </form>
         </div>
     </div>
-    <script>const UPDATE_INTERVAL = 5e2; let updateTimer; const icons = { check: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>', warning: '<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>' }; const leakIcon = document.getElementById("leakIcon"), leakStatus = document.getElementById("leakStatus"), leakDescription = document.getElementById("leakDescription"), gasValueDisplay = document.getElementById("gasValueDisplay"), gasThresholdDisplay = document.getElementById("gasThresholdDisplay"), gasLevel = document.getElementById("gasLevel"), gasProgress = document.getElementById("gasProgress"), gasProgressText = document.getElementById("gasProgressText"), gasDescription = document.getElementById("gasDescription"), currentWeightDisplay = document.getElementById("currentWeightDisplay"), weightDescription = document.getElementById("weightDescription"), saveWeightBtn = document.getElementById("saveWeightBtn"), successAlert = document.getElementById("successAlert"), errorAlert = document.getElementById("errorAlert"); function init() { updateStatus(), startAutoUpdate(), saveWeightBtn.addEventListener("click", handleSaveWeight) } async function updateStatus() { try { const e = await fetch("/api/status"), t = await e.json(); updateLeakStatus(t.gasLeak || !1), updateGasLevel(t.gasLevel || 0), currentWeightDisplay.textContent = t.currentWeight ? t.currentWeight.toFixed(2) : "--", weightDescription.textContent = t.currentWeight ? "Peso atual lido pela balança" : "Aguardando leitura da balança", gasValueDisplay.textContent = t.gasValue !== undefined ? t.gasValue : "--", gasThresholdDisplay.textContent = t.gasThreshold !== undefined ? t.gasThreshold : "--" } catch (e) { console.error("Error updating status:", e), showOfflineStatus() } } function updateLeakStatus(e) { e ? (leakIcon.innerHTML = icons.warning, leakIcon.style.color = "#dc2626", leakStatus.innerHTML = '<span class="badge badge-danger">Detectado</span>', leakDescription.textContent = "⚠️ Vazamento detectado! Verifique imediatamente.", leakDescription.style.color = "#fca5a5") : (leakIcon.innerHTML = icons.check, leakIcon.style.color = "#22c55e", leakStatus.innerHTML = '<span class="badge badge-success">Normal</span>', leakDescription.textContent = "Sistema operando normalmente", leakDescription.style.color = "#71717a") } function updateGasLevel(e) { e = Math.max(0, Math.min(100, e)), gasLevel.textContent = e.toFixed(1), gasProgress.style.width = e + "%", gasProgress.className = "progress-bar", e < 20 ? (gasProgress.classList.add("low"), gasDescription.textContent = "⚠️ Nível crítico - substitua o botijão em breve", gasDescription.style.color = "#fca5a5") : e < 50 ? (gasProgress.classList.add("medium"), gasDescription.textContent = "Nível médio - monitore o consumo", gasDescription.style.color = "#fcd34d") : (gasDescription.textContent = "Nível adequado de gás", gasDescription.style.color = "#71717a"), gasProgressText.textContent = e >= 10 ? e.toFixed(0) + "%" : "" } function showOfflineStatus() { leakStatus.textContent = "Offline", leakDescription.textContent = "Não foi possível conectar ao sensor", gasLevel.textContent = "--", gasProgress.style.width = "0%", currentWeightDisplay.textContent = "--", weightDescription.textContent = "Não foi possível conectar ao sensor", gasValueDisplay.textContent = "--", gasThresholdDisplay.textContent = "--" } async function handleSaveWeight() { saveWeightBtn.disabled = !0, saveWeightBtn.innerHTML = '<span class="loading"></span> Salvando...'; try { const e = await fetch("/api/weight", { method: "POST", headers: { "Content-Type": "application/json" } }); if (e.ok) { const t = await e.json(); showAlert("success", "Peso salvo com sucesso! Peso inicial: " + t.weight + " kg"), setTimeout(() => updateStatus(), 500) } else showAlert("error", "Erro ao salvar peso") } catch (e) { console.error("Error saving weight:", e), showAlert("error", "Erro de conexão. Verifique sua rede.") } finally { saveWeightBtn.disabled = !1, saveWeightBtn.textContent = "Salvar Peso Atual como Peso Inicial" } } function showAlert(e, t) { hideAlerts(); const a = "success" === e ? successAlert : errorAlert; a.textContent = t, a.classList.add("show"), setTimeout(() => { a.classList.remove("show") }, 5e3) } function hideAlerts() { successAlert.classList.remove("show"), errorAlert.classList.remove("show") } function startAutoUpdate() { updateTimer = setInterval(updateStatus, UPDATE_INTERVAL) } function stopAutoUpdate() { updateTimer && clearInterval(updateTimer) } document.addEventListener("visibilitychange", () => { document.hidden ? stopAutoUpdate() : (updateStatus(), startAutoUpdate()) }), init()</script>
-</body>
 
+    <script>
+        const UPDATE_INTERVAL = 3000;
+        let updateTimer;
+
+        const icons = {
+            check: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',
+            warning: '<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>'
+        };
+
+        // Elements
+        const leakIcon = document.getElementById('leakIcon');
+        const leakStatus = document.getElementById('leakStatus');
+        const leakDescription = document.getElementById('leakDescription');
+        const gasValueDisplay = document.getElementById('gasValueDisplay');
+        const gasThresholdDisplay = document.getElementById('gasThresholdDisplay');
+        const gasLevel = document.getElementById('gasLevel');
+        const gasProgress = document.getElementById('gasProgress');
+        const gasProgressText = document.getElementById('gasProgressText');
+        const gasDescription = document.getElementById('gasDescription');
+        const currentWeightDisplay = document.getElementById('currentWeightDisplay');
+        const weightDescription = document.getElementById('weightDescription');
+        const saveWeightBtn = document.getElementById('saveWeightBtn');
+        const settingsForm = document.getElementById('settingsForm');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+
+        function init() {
+            updateStatus();
+            loadSettings();
+            startAutoUpdate();
+            saveWeightBtn.addEventListener('click', handleSaveWeight);
+            settingsForm.addEventListener('submit', handleSaveSettings);
+        }
+
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                updateLeakStatus(data.gasLeak || false);
+                updateGasLevel(data.gasLevel || 0);
+                
+                currentWeightDisplay.textContent = data.currentWeight ? data.currentWeight.toFixed(2) : '--';
+                weightDescription.textContent = data.currentWeight ? 'Peso atual lido pela balança' : 'Aguardando leitura da balança';
+                
+                gasValueDisplay.textContent = data.gasValue !== undefined ? data.gasValue : '--';
+                gasThresholdDisplay.textContent = data.gasThreshold !== undefined ? data.gasThreshold : '--';
+            } catch (error) {
+                console.error('Error updating status:', error);
+                showOfflineStatus();
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                const data = await response.json();
+                
+                document.getElementById('gasThreshold').value = data.gasThreshold || '';
+                document.getElementById('whatsappPhone').value = data.whatsappPhone || '';
+                document.getElementById('whatsappApiKey').value = data.whatsappApiKey || '';
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        function updateLeakStatus(hasLeak) {
+            if (hasLeak) {
+                leakIcon.innerHTML = icons.warning;
+                leakIcon.style.color = '#dc2626';
+                leakStatus.innerHTML = '<span class="badge badge-danger">Detectado</span>';
+                leakDescription.textContent = '⚠️ Vazamento detectado! Verifique imediatamente.';
+                leakDescription.style.color = '#fca5a5';
+            } else {
+                leakIcon.innerHTML = icons.check;
+                leakIcon.style.color = '#22c55e';
+                leakStatus.innerHTML = '<span class="badge badge-success">Normal</span>';
+                leakDescription.textContent = 'Sistema operando normalmente';
+                leakDescription.style.color = '#71717a';
+            }
+        }
+
+        function updateGasLevel(level) {
+            level = Math.max(0, Math.min(100, level));
+            gasLevel.textContent = level.toFixed(1);
+            gasProgress.style.width = level + '%';
+            gasProgress.className = 'progress-bar';
+            
+            if (level < 20) {
+                gasProgress.classList.add('low');
+                gasDescription.textContent = '⚠️ Nível crítico - substitua o botijão em breve';
+                gasDescription.style.color = '#fca5a5';
+            } else if (level < 50) {
+                gasProgress.classList.add('medium');
+                gasDescription.textContent = 'Nível médio - monitore o consumo';
+                gasDescription.style.color = '#fcd34d';
+            } else {
+                gasDescription.textContent = 'Nível adequado de gás';
+                gasDescription.style.color = '#71717a';
+            }
+            
+            gasProgressText.textContent = level >= 10 ? level.toFixed(0) + '%' : '';
+        }
+
+        function showOfflineStatus() {
+            leakStatus.textContent = 'Offline';
+            leakDescription.textContent = 'Não foi possível conectar ao sensor';
+            gasLevel.textContent = '--';
+            gasProgress.style.width = '0%';
+            currentWeightDisplay.textContent = '--';
+            weightDescription.textContent = 'Não foi possível conectar ao sensor';
+            gasValueDisplay.textContent = '--';
+            gasThresholdDisplay.textContent = '--';
+        }
+
+        async function handleSaveWeight() {
+            saveWeightBtn.disabled = true;
+            saveWeightBtn.innerHTML = '<span class="loading"></span> Salvando...';
+            
+            try {
+                const response = await fetch('/api/weight', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showAlert('weightSuccessAlert', 'Peso salvo com sucesso! Peso inicial: ' + data.weight + ' kg');
+                    setTimeout(() => updateStatus(), 500);
+                } else {
+                    showAlert('weightErrorAlert', 'Erro ao salvar peso');
+                }
+            } catch (error) {
+                console.error('Error saving weight:', error);
+                showAlert('weightErrorAlert', 'Erro de conexão. Verifique sua rede.');
+            } finally {
+                saveWeightBtn.disabled = false;
+                saveWeightBtn.textContent = 'Salvar Peso Atual como Peso Inicial';
+            }
+        }
+
+        async function handleSaveSettings(event) {
+            event.preventDefault();
+            
+            saveSettingsBtn.disabled = true;
+            saveSettingsBtn.innerHTML = '<span class="loading"></span> Salvando...';
+            
+            const settings = {
+                gasThreshold: parseInt(document.getElementById('gasThreshold').value) || 400,
+                whatsappPhone: document.getElementById('whatsappPhone').value.trim(),
+                whatsappApiKey: document.getElementById('whatsappApiKey').value.trim()
+            };
+            
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+                
+                if (response.ok) {
+                    showAlert('settingsSuccessAlert', 'Configurações salvas com sucesso!');
+                    setTimeout(() => updateStatus(), 500);
+                } else {
+                    showAlert('settingsErrorAlert', 'Erro ao salvar configurações');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showAlert('settingsErrorAlert', 'Erro de conexão. Verifique sua rede.');
+            } finally {
+                saveSettingsBtn.disabled = false;
+                saveSettingsBtn.textContent = 'Salvar Configurações';
+            }
+        }
+
+        function showAlert(alertId, message) {
+            hideAlerts();
+            const alert = document.getElementById(alertId);
+            alert.textContent = message;
+            alert.classList.add('show');
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+
+        function hideAlerts() {
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.classList.remove('show');
+            });
+        }
+
+        function startAutoUpdate() {
+            updateTimer = setInterval(updateStatus, UPDATE_INTERVAL);
+        }
+
+        function stopAutoUpdate() {
+            if (updateTimer) clearInterval(updateTimer);
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAutoUpdate();
+            } else {
+                updateStatus();
+                startAutoUpdate();
+            }
+        });
+
+        init();
+    </script>
+</body>
 </html>
