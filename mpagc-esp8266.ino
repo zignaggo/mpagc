@@ -21,6 +21,9 @@ const int PIN_BUZZER = 16;
 const int PIN_SDA = 4;
 const int PIN_SCL = 5;
 
+const String WHATSAPP_PHONE = "5511999999999";
+const String WHATSAPP_APIKEY = "1234567890";
+
 ESP8266WebServer server(80);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -92,6 +95,36 @@ void loop() {
   updateDisplay(gasValue, gasLeakDetected, gasLevel);
   
   delay(100);
+}
+
+
+/*  WHATSAPP API */
+void sendWhatsappMessage(String message, String phone, String apikey) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi não conectado. Mensagem não enviada.");
+    return;
+  }
+
+  HTTPClient http;
+
+  String encodedMessage = urlEncode(message);
+  String url = String("https://api.callmebot.com/whatsapp.php?phone=") + phone + "&text=" + encodedMessage + "&apikey=" + apikey;
+
+  http.begin(url);
+  int httpCode = http.GET();
+
+  switch (httpCode / 100) {
+    case 2:
+    case 3:
+      Serial.printf("Mensagem enviada! Código HTTP: %d\n", httpCode);
+      break;
+    default:
+      Serial.printf("Erro ao enviar mensagem: %d\n", httpCode);
+      break;
+  }
+  
+  http.end();
+
 }
 
 /* SETUPS */
@@ -269,6 +302,14 @@ void readSensors() {
   bool previousLeakState = gasLeakDetected;
   GasSensorResult gas = readGasSensor();
   currentGasWeight = readScale();
+
+   if (!previousLeakState && gasLeakDetected) {
+    String msg = "ALERTA: Vazamento de gas detectado! "
+                 "ADC=" + String(gas.value) +
+                 " / limiar=" + String(gasThreshold) +
+                 " / peso=" + String(currentGasWeight) + " kg";
+    sendWhatsappMessage(msg, WHATSAPP_PHONE, WHATSAPP_APIKEY);
+  }
   
   debugLog("[SENSORES] Gás ADC: " + String(gas.value) + "/1023 | Limiar: " + String(gasThreshold) + " | Estado: " + String(gasLeakDetected ? "VAZAMENTO!" : "Normal") + " | Peso: " + String(currentGasWeight) + " kg");
   
