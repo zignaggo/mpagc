@@ -19,7 +19,6 @@ const int SCREEN_WIDTH = 128;
 const int SCREEN_HEIGHT = 64;
 const int OLED_RESET = -1;
 
-
 String whatsappPhone = "";
 String whatsappApiKey = "";
 
@@ -53,7 +52,7 @@ void debugLog(String prefix, String message) {
 
 
 const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Monitor MPAGC</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#0a0a0a;color:#fafafa;padding:1rem}.container{max-width:800px;margin:0 auto}.header{text-align:center;margin-bottom:2rem}.card{background:#18181b;border:1px solid #27272a;border-radius:.5rem;padding:1.5rem;margin-bottom:1.5rem}.card-title{font-size:1.25rem;font-weight:600;margin-bottom:1rem}.status-item{background:#09090b;border:1px solid #27272a;border-radius:.5rem;padding:1rem;margin-bottom:1rem}.status-label{font-size:.875rem;color:#a1a1aa;margin-bottom:.5rem}.status-value{font-size:1.5rem;font-weight:700}.badge{padding:.25rem .75rem;border-radius:999px;font-size:.75rem;font-weight:600}.badge-success{background:#166534;color:#bbf7d0}.badge-danger{background:#991b1b;color:#fecaca}.form-group{margin-bottom:1rem}.form-label{display:block;font-size:.875rem;margin-bottom:.5rem}.form-input{width:100%;padding:.5rem;background:#09090b;border:1px solid #27272a;border-radius:.5rem;color:#fafafa;font-size:.875rem}.form-input:focus{border-color:#3b82f6;outline:0}.btn{padding:.625rem 1.25rem;font-size:.875rem;font-weight:500;border:none;border-radius:.5rem;cursor:pointer;width:100%;margin-top:.5rem}.btn-primary{background:#3b82f6;color:#fff}.btn-primary:hover{background:#2563eb}.alert{padding:1rem;border-radius:.5rem;font-size:.875rem;margin-bottom:1rem;display:none}.alert.show{display:block}.alert-success{background:#166534;color:#bbf7d0}.alert-error{background:#991b1b;color:#fecaca}</style></head><body><div class="container"><div class="header"><h1>Monitor de Gás</h1><p>MPAGC</p></div><div class="card"><h2 class="card-title">Status</h2><div class="status-item"><div class="status-label">Vazamento</div><div class="status-value"><span id="leak">--</span></div><small>ADC: <span id="gasVal">--</span> | Limiar: <span id="gasTh">--</span></small></div></div><div class="card"><h2 class="card-title">Configurações</h2><div class="alert alert-success" id="sOk"></div><div class="alert alert-error" id="sErr"></div><form id="form"><div class="form-group"><label class="form-label">Limiar Gás (0-1023)</label><input type="number" class="form-input" id="th" min="0" max="1023"></div><div class="form-group"><label class="form-label">WhatsApp</label><input type="text" class="form-input" id="ph" placeholder="5511999999999"></div><div class="form-group"><label class="form-label">API Key</label><input type="text" class="form-input" id="key"></div><button type="submit" class="btn btn-primary">Salvar</button></form></div></div><script>let t;const $=e=>document.getElementById(e),show=(e,s)=>{$(e).textContent=s,$(e).classList.add('show'),setTimeout(()=>$(e).classList.remove('show'),5e3)};async function upd(){try{const e=await(await fetch('/api/status')).json();$('leak').innerHTML=e.gasLeak?'<span class="badge badge-danger">ALERTA</span>':'<span class="badge badge-success">Normal</span>';$('gasVal').textContent=e.gasValue??'--';$('gasTh').textContent=e.gasThreshold??'--'}catch(e){console.error(e)}}async function loadSet(){try{const e=await(await fetch('/api/settings')).json();$('th').value=e.gasThreshold||'';$('ph').value=e.whatsappPhone||'';$('key').value=e.whatsappApiKey||''}catch(e){console.error(e)}}$('form').onsubmit=async e=>{e.preventDefault();try{const s={gasThreshold:parseInt($('th').value)||400,whatsappPhone:$('ph').value.trim(),whatsappApiKey:$('key').value.trim()},a=await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(s)});a.ok?(show('sOk','Salvo!'),upd()):show('sErr','Erro')}catch(e){show('sErr','Erro')}};upd();loadSet();t=setInterval(upd,3e3);document.addEventListener('visibilitychange',()=>{document.hidden?(clearInterval(t),t=null):(upd(),t=setInterval(upd,3e3))});</script></body></html>
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Monitor MPAGC</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#0a0a0a;color:#fafafa;padding:1rem}.container{max-width:800px;margin:0 auto}.header{text-align:center;margin-bottom:2rem}.card{background:#18181b;border:1px solid #27272a;border-radius:.5rem;padding:1.5rem;margin-bottom:1.5rem}.card-title{font-size:1.25rem;font-weight:600;margin-bottom:1rem}.status-item{background:#09090b;border:1px solid #27272a;border-radius:.5rem;padding:1rem;margin-bottom:1rem}.status-label{font-size:.875rem;color:#a1a1aa;margin-bottom:.5rem}.status-value{font-size:1.5rem;font-weight:700}.badge{padding:.25rem .75rem;border-radius:999px;font-size:.75rem;font-weight:600}.badge-success{background:#166534;color:#bbf7d0}.badge-danger{background:#991b1b;color:#fecaca}.form-group{margin-bottom:1rem}.form-label{display:block;font-size:.875rem;margin-bottom:.5rem}.form-input{width:100%;padding:.5rem;background:#09090b;border:1px solid #27272a;border-radius:.5rem;color:#fafafa;font-size:.875rem}.form-input:focus{border-color:#3b82f6;outline:0}.btn{padding:.625rem 1.25rem;font-size:.875rem;font-weight:500;border:none;border-radius:.5rem;cursor:pointer;width:100%;margin-top:.5rem}.btn-primary{background:#3b82f6;color:#fff}.btn-primary:hover{background:#2563eb}.alert{padding:1rem;border-radius:.5rem;font-size:.875rem;margin-bottom:1rem;display:none}.alert.show{display:block}.alert-success{background:#166534;color:#bbf7d0}.alert-error{background:#991b1b;color:#fecaca}</style></head><body><div class="container"><div class="header"><h1>Monitor de Gás</h1><p>MPAGC</p></div><div class="card"><h2 class="card-title">Status</h2><div class="status-item"><div class="status-label">Vazamento</div><div class="status-value"><span id="leak">--</span></div><small>ADC: <span id="gasVal">--</span> | Limiar: <span id="gasTh">--</span></small></div></div><div class="card"><h2 class="card-title">Configurações</h2><div class="alert alert-success" id="sOk"></div><div class="alert alert-error" id="sErr"></div><form id="form"><div class="form-group"><label class="form-label">Limiar Gás (0-1023)</label><input type="number" class="form-input" id="th" min="0" max="1023"></div><div class="form-group"><label class="form-label">WhatsApp</label><input type="text" class="form-input" id="ph" placeholder="5511999999999"></div><div class="form-group"><label class="form-label">API Key</label><input type="text" class="form-input" id="key"></div><button type="submit" class="btn btn-primary">Salvar</button></form></div></div><script>let t;const $=e=>document.getElementById(e),show=(e,s)=>{$(e).textContent=s,$(e).classList.add('show'),setTimeout(()=>$(e).classList.remove('show'),5e3)};async function upd(){try{const e=await(await fetch('/api/status')).json();$('leak').innerHTML=e.gasLeak?'<span class="badge badge-danger">ALERTA</span>':'<span class="badge badge-success">Normal</span>';$('gasVal').textContent=e.gasValue??'--';$('gasTh').textContent=e.gasThreshold??'--'}catch(e){console.error(e)}}async function loadSet(){try{const e=await(await fetch('/api/settings')).json();$('th').value=e.gasThreshold||'';$('ph').value=e.whatsappPhone||'';$('key').value=e.whatsappApiKey||''}catch(e){console.error(e)}}$('form').onsubmit=async e=>{e.preventDefault();try{const s={gasThreshold:parseInt($('th').value)||400,whatsappPhone:$('ph').value.trim(),whatsappApiKey:$('key').value.trim()},a=await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(s)});a.ok?(show('sOk','Salvo!'),upd()):show('sErr','Erro')}catch(e){show('sErr','Erro')}};upd();loadSet();t=setInterval(upd,6e2);document.addEventListener('visibilitychange',()=>{document.hidden?(clearInterval(t),t=null):(upd(),t=setInterval(upd,3e3))});</script></body></html>
 )rawliteral";
 
 void setup() {
@@ -97,7 +96,7 @@ void sendWhatsappMessage(String message, String phone, String apikey) {
   }
 
   WiFiClientSecure client;
-  client.setInsecure(); // Ignora validação SSL (necessário para ESP8266)
+  client.setInsecure();
   
   HTTPClient http;
 
@@ -105,7 +104,7 @@ void sendWhatsappMessage(String message, String phone, String apikey) {
   String url = String("https://api.callmebot.com/whatsapp.php?phone=") + phone + "&text=" + encodedMessage + "&apikey=" + apikey;
 
   http.begin(client, url);
-  http.setTimeout(15000); // Timeout de 15 segundos
+  http.setTimeout(15000);
   
   int httpCode = http.GET();
 
@@ -288,7 +287,6 @@ void readSensors() {
   GasSensorResult gas = readGasSensor();
 
   if (!previousLeakState && gasLeakDetected) {
-    // Envia mensagem apenas se o telefone e API key estiverem configurados
     if (whatsappPhone.length() > 0 && whatsappApiKey.length() > 0) {
       String msg = "ALERTA: Vazamento de gas detectado! "
                   "ADC=" + String(gas.value) +
@@ -325,7 +323,7 @@ void updateDisplay(int gas_value, bool alert_status) {
   display.setTextSize(2);
   if (alert_status) {
     display.setCursor(10, 2);
-    display.setTextColor(BLACK, WHITE); // Invertido
+    display.setTextColor(BLACK, WHITE); 
     display.println(" ALERTA ");
     display.setTextColor(WHITE);
     // Borda dupla
@@ -339,7 +337,6 @@ void updateDisplay(int gas_value, bool alert_status) {
   // Linha divisória
   display.drawFastHLine(0, 22, SCREEN_WIDTH, WHITE);
 
-  // GLP: valor do sensor 
   display.setTextSize(1);
   display.setCursor(0, 26);
   display.print("GLP ADC: ");
@@ -349,7 +346,7 @@ void updateDisplay(int gas_value, bool alert_status) {
 }
 
 void buzz() {
-  tone(PIN_BUZZER, 2000);  // 2000 Hz
+  tone(PIN_BUZZER, 2000);
 }
 
 void unbuzz() {
